@@ -1,0 +1,28 @@
+1. 需要实时性非常高的，串口接收中断，一般中断接收，DMA发送
+
+char rx_buffer[RX_BUFFER_SIZE];
+int rx_buffer_pos = 0;
+
+void USARTx_Interrupt(void)
+{
+        char c = USARTx->DR;
+        rx_buffer[rx_buffer_pos++] = c;
+        if(rx_buffer_pos>=数据长度)
+        {
+                //数据处理
+                rx_buffer_pos = 0;
+                清零定时器;
+        }
+}
+
+void TIMx_Interrupt(void)
+{
+        //超时处理
+        rx_buffer_pos = 0;
+}
+
+2. 用DMA 接收，空闲中断时把DMA 接收到的数据放入接收缓冲区中。
+接收缓冲区采用环形队列结构，通讯程序对缓冲区数据进行处理即可。什么数据都不会丢的。
+
+3.DMA 循环接收
+串口空闲中断 触发定时器 ，定时器时间到，才触发解析数据，定时器时间未到 又来 串口空闲中断的话，清零定时器 重新计时
